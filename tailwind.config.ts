@@ -7,7 +7,7 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: "1rem",
       screens: {
         "2xl": "1400px",
       },
@@ -57,33 +57,55 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        success: "hsl(var(--success))",
+        warning: "hsl(var(--warning))",
+        danger: "hsl(var(--danger))",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "2xl": "1rem",
+        "3xl": "1.5rem",
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        hindi: ['Noto Sans Devanagari', 'system-ui', 'sans-serif'],
+      },
+      fontSize: {
+        'display': ['3rem', { lineHeight: '1.1', fontWeight: '700' }],
+        'heading': ['1.875rem', { lineHeight: '1.2', fontWeight: '700' }],
+        'subheading': ['1.25rem', { lineHeight: '1.4', fontWeight: '600' }],
+      },
+      boxShadow: {
+        'soft': 'var(--shadow-soft)',
+        'card': 'var(--shadow-card)',
+        'elevated': 'var(--shadow-elevated)',
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "pulse-ring": {
+          "0%": { transform: "scale(1)", opacity: "1" },
+          "50%": { transform: "scale(1.2)", opacity: "0.5" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pulse-ring": "pulse-ring 2s ease-in-out infinite",
+        "float": "float 3s ease-in-out infinite",
       },
     },
   },
