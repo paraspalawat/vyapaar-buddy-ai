@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, Phone, ArrowRight, Check } from 'lucide-react';
+import { Store, ArrowRight, Mail, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import {
   Select,
   SelectContent,
@@ -12,8 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-type Step = 'phone' | 'otp' | 'register';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/hooks/useAuth';
+import { useShop } from '@/hooks/useShop';
 
 const categories = [
   { value: 'kirana', label: 'Kirana / Grocery', labelHi: 'किराना / ग्रॉसरी' },
@@ -27,9 +27,13 @@ const categories = [
 
 export default function Login() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>('phone');
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
+  const { user, loading: authLoading, signIn, signUp } = useAuth();
+  const { shop, loading: shopLoading, createShop } = useShop();
+  
+  const [step, setStep] = useState<'auth' | 'register'>('auth');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     shopName: '',
     ownerName: '',
@@ -38,21 +42,58 @@ export default function Login() {
     language: 'en',
   });
 
-  const handleSendOtp = () => {
-    if (phone.length === 10) {
-      setStep('otp');
+  useEffect(() => {
+    if (!authLoading && !shopLoading) {
+      if (user && shop) {
+        navigate('/dashboard');
+      } else if (user && !shop) {
+        setStep('register');
+      }
     }
+  }, [user, shop, authLoading, shopLoading, navigate]);
+
+  const handleSignIn = async () => {
+    if (!email || !password) return;
+    setIsSubmitting(true);
+    const { error } = await signIn(email, password);
+    setIsSubmitting(false);
   };
 
-  const handleVerifyOtp = () => {
-    if (otp.length === 6) {
+  const handleSignUp = async () => {
+    if (!email || !password) return;
+    setIsSubmitting(true);
+    const { error } = await signUp(email, password);
+    setIsSubmitting(false);
+    if (!error) {
       setStep('register');
     }
   };
 
-  const handleRegister = () => {
-    navigate('/dashboard');
+  const handleRegister = async () => {
+    if (!formData.shopName || !formData.ownerName || !formData.category) return;
+    setIsSubmitting(true);
+    try {
+      await createShop({
+        name: formData.shopName,
+        owner_name: formData.ownerName,
+        category: formData.category,
+        city: formData.city,
+        language: formData.language,
+      });
+      navigate('/dashboard');
+    } catch (error) {
+      console.error(error);
+    }
+    setIsSubmitting(false);
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center p-4">
@@ -68,82 +109,106 @@ export default function Login() {
 
         {/* Card */}
         <div className="bg-card rounded-3xl shadow-elevated p-6 lg:p-8 animate-fade-up delay-100">
-          {step === 'phone' && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-xl font-bold text-foreground">Welcome! स्वागत है!</h2>
-                <p className="text-muted-foreground mt-1">Enter your mobile number</p>
-              </div>
+          {step === 'auth' && (
+            <Tabs defaultValue="signin" className="space-y-6">
+              <TabsList className="grid grid-cols-2 rounded-2xl">
+                <TabsTrigger value="signin" className="rounded-xl">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-xl">Sign Up</TabsTrigger>
+              </TabsList>
 
-              <div className="space-y-4">
+              <TabsContent value="signin" className="space-y-4">
+                <div className="text-center mb-4">
+                  <h2 className="text-xl font-bold text-foreground">Welcome Back!</h2>
+                  <p className="text-muted-foreground mt-1">Sign in to your account</p>
+                </div>
+
                 <div>
-                  <Label htmlFor="phone" className="text-base font-medium">
-                    Mobile Number / मोबाइल नंबर
-                  </Label>
+                  <Label htmlFor="email" className="text-base font-medium">Email</Label>
                   <div className="relative mt-2">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                      +91
-                    </span>
                     <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="9876543210"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      className="pl-14 h-14 text-lg rounded-2xl"
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10 h-12 rounded-xl"
                     />
-                    <Phone className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="password" className="text-base font-medium">Password</Label>
+                  <div className="relative mt-2">
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSignIn()}
+                      className="pl-10 h-12 rounded-xl"
+                    />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   </div>
                 </div>
 
                 <Button
-                  onClick={handleSendOtp}
-                  disabled={phone.length !== 10}
-                  className="w-full h-14 text-lg rounded-2xl bg-gradient-primary hover:opacity-90"
+                  onClick={handleSignIn}
+                  disabled={!email || !password || isSubmitting}
+                  className="w-full h-12 text-lg rounded-xl bg-gradient-primary hover:opacity-90"
                 >
-                  Send OTP / OTP भेजें
+                  {isSubmitting ? 'Signing in...' : 'Sign In'}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
-              </div>
-            </div>
-          )}
+              </TabsContent>
 
-          {step === 'otp' && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-xl font-bold text-foreground">Verify OTP</h2>
-                <p className="text-muted-foreground mt-1">
-                  OTP sent to +91 {phone}
-                </p>
-              </div>
+              <TabsContent value="signup" className="space-y-4">
+                <div className="text-center mb-4">
+                  <h2 className="text-xl font-bold text-foreground">Create Account</h2>
+                  <p className="text-muted-foreground mt-1">Start your free trial today</p>
+                </div>
 
-              <div className="flex justify-center">
-                <InputOTP maxLength={6} value={otp} onChange={setOtp}>
-                  <InputOTPGroup className="gap-2">
-                    {[0, 1, 2, 3, 4, 5].map((i) => (
-                      <InputOTPSlot 
-                        key={i} 
-                        index={i} 
-                        className="w-12 h-14 text-xl rounded-xl border-2"
-                      />
-                    ))}
-                  </InputOTPGroup>
-                </InputOTP>
-              </div>
+                <div>
+                  <Label htmlFor="signup-email" className="text-base font-medium">Email</Label>
+                  <div className="relative mt-2">
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10 h-12 rounded-xl"
+                    />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  </div>
+                </div>
 
-              <Button
-                onClick={handleVerifyOtp}
-                disabled={otp.length !== 6}
-                className="w-full h-14 text-lg rounded-2xl bg-gradient-primary hover:opacity-90"
-              >
-                Verify / सत्यापित करें
-                <Check className="ml-2 w-5 h-5" />
-              </Button>
+                <div>
+                  <Label htmlFor="signup-password" className="text-base font-medium">Password</Label>
+                  <div className="relative mt-2">
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 h-12 rounded-xl"
+                    />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  </div>
+                </div>
 
-              <p className="text-center text-sm text-muted-foreground">
-                Didn't receive? <button className="text-primary font-medium">Resend OTP</button>
-              </p>
-            </div>
+                <Button
+                  onClick={handleSignUp}
+                  disabled={!email || !password || isSubmitting}
+                  className="w-full h-12 text-lg rounded-xl bg-gradient-primary hover:opacity-90"
+                >
+                  {isSubmitting ? 'Creating account...' : 'Sign Up'}
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </TabsContent>
+            </Tabs>
           )}
 
           {step === 'register' && (
@@ -221,9 +286,10 @@ export default function Login() {
 
                 <Button
                   onClick={handleRegister}
+                  disabled={!formData.shopName || !formData.ownerName || !formData.category || isSubmitting}
                   className="w-full h-14 text-lg rounded-2xl bg-gradient-primary hover:opacity-90 mt-2"
                 >
-                  Start Using / शुरू करें
+                  {isSubmitting ? 'Creating shop...' : 'Start Using / शुरू करें'}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </div>
