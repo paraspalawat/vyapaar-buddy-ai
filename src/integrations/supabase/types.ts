@@ -14,7 +14,186 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          shop_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          shop_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          shop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category: string | null
+          cost_price: number | null
+          created_at: string
+          current_price: number
+          id: string
+          image_emoji: string | null
+          max_stock: number | null
+          min_stock: number | null
+          name: string
+          shop_id: string
+          status: string | null
+          stock: number
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string
+          current_price?: number
+          id?: string
+          image_emoji?: string | null
+          max_stock?: number | null
+          min_stock?: number | null
+          name: string
+          shop_id: string
+          status?: string | null
+          stock?: number
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string
+          current_price?: number
+          id?: string
+          image_emoji?: string | null
+          max_stock?: number | null
+          min_stock?: number | null
+          name?: string
+          shop_id?: string
+          status?: string | null
+          stock?: number
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shops: {
+        Row: {
+          category: string
+          city: string | null
+          created_at: string
+          id: string
+          language: string | null
+          name: string
+          owner_name: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          city?: string | null
+          created_at?: string
+          id?: string
+          language?: string | null
+          name: string
+          owner_name: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          city?: string | null
+          created_at?: string
+          id?: string
+          language?: string | null
+          name?: string
+          owner_name?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_campaigns: {
+        Row: {
+          click_count: number | null
+          created_at: string
+          id: string
+          message: string
+          name: string
+          scheduled_at: string | null
+          sent_count: number | null
+          shop_id: string
+          status: string | null
+          template_type: string | null
+          view_count: number | null
+        }
+        Insert: {
+          click_count?: number | null
+          created_at?: string
+          id?: string
+          message: string
+          name: string
+          scheduled_at?: string | null
+          sent_count?: number | null
+          shop_id: string
+          status?: string | null
+          template_type?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          click_count?: number | null
+          created_at?: string
+          id?: string
+          message?: string
+          name?: string
+          scheduled_at?: string | null
+          sent_count?: number | null
+          shop_id?: string
+          status?: string | null
+          template_type?: string | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_campaigns_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

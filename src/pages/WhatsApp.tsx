@@ -8,14 +8,17 @@ import {
   Users,
   Image,
   Sparkles,
-  ChevronRight,
-  Clock
+  Clock,
+  ExternalLink
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { useShop } from '@/hooks/useShop';
+import { openWhatsAppShare, formatCampaignMessage, campaignTemplates } from '@/lib/whatsapp';
 
 const templates = [
   { 
@@ -98,12 +101,62 @@ const campaigns = [
 
 export default function WhatsApp() {
   const { t, language } = useLanguage();
+  const { shop } = useShop();
+  const { toast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [message, setMessage] = useState('');
 
   const handleTemplateSelect = (template: typeof templates[0]) => {
     setSelectedTemplate(template.id);
     setMessage(language === 'hi' ? template.previewHi : template.preview);
+  };
+
+  const handleSendWhatsApp = () => {
+    if (!message.trim()) {
+      toast({
+        title: 'Please enter a message',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const shopName = shop?.name || 'My Shop';
+    const fullMessage = formatCampaignMessage(
+      { name: 'Custom', preview: message },
+      shopName
+    );
+    
+    openWhatsAppShare(fullMessage);
+    toast({
+      title: 'WhatsApp opened!',
+      description: 'Share your message with customers',
+    });
+  };
+
+  const handleQuickTemplate = (type: 'festival' | 'daily' | 'newArrival' | 'discount') => {
+    const shopName = shop?.name || 'My Shop';
+    let templateMessage = '';
+    
+    switch (type) {
+      case 'festival':
+        templateMessage = campaignTemplates.festival(shopName, '20%');
+        break;
+      case 'daily':
+        templateMessage = campaignTemplates.daily(shopName);
+        break;
+      case 'newArrival':
+        templateMessage = campaignTemplates.newArrival(shopName);
+        break;
+      case 'discount':
+        templateMessage = campaignTemplates.discount(shopName, '30%');
+        break;
+    }
+    
+    openWhatsAppShare(templateMessage);
+    toast({
+      title: 'WhatsApp opened!',
+      description: 'Share your campaign with customers',
+    });
   };
 
   return (
@@ -200,6 +253,18 @@ export default function WhatsApp() {
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {language === 'hi' ? template.previewHi : template.preview}
                     </p>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="mt-2 text-green-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleQuickTemplate(template.type as any);
+                      }}
+                    >
+                      <ExternalLink className="w-4 h-4 mr-1" />
+                      Quick Share
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -233,7 +298,10 @@ export default function WhatsApp() {
                 </Button>
               </div>
 
-              <Button className="w-full bg-green-600 hover:bg-green-700 rounded-xl h-12">
+              <Button 
+                onClick={handleSendWhatsApp}
+                className="w-full bg-green-600 hover:bg-green-700 rounded-xl h-12"
+              >
                 <Send className="w-5 h-5 mr-2" />
                 {t('whatsapp.send')}
               </Button>
@@ -252,6 +320,12 @@ export default function WhatsApp() {
               {posters.map((poster) => (
                 <div 
                   key={poster.id}
+                  onClick={() => {
+                    toast({
+                      title: `${poster.name} selected`,
+                      description: 'Customizing poster...',
+                    });
+                  }}
                   className="aspect-square bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform border-2 border-transparent hover:border-primary"
                 >
                   <span className="text-5xl mb-3">{poster.image}</span>
@@ -270,7 +344,10 @@ export default function WhatsApp() {
                     Describe your offer and AI will create a custom poster
                   </p>
                 </div>
-                <Button className="ml-auto rounded-xl">
+                <Button 
+                  className="ml-auto rounded-xl"
+                  onClick={() => toast({ title: 'Coming soon!', description: 'AI poster generation will be available soon.' })}
+                >
                   Generate
                 </Button>
               </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { 
   Mic, 
   MicOff, 
@@ -7,11 +7,20 @@ import {
   Package,
   IndianRupee,
   BarChart3,
-  Bot
+  Bot,
+  Loader2
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { useShop } from '@/hooks/useShop';
+import { useToast } from '@/hooks/use-toast';
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 const suggestedPrompts = [
   { 
@@ -40,44 +49,68 @@ const suggestedPrompts = [
   },
 ];
 
-const chatHistory = [
-  {
-    role: 'assistant',
-    content: 'नमस्ते! मैं आपका AI बिज़नेस सहायक हूं। आप मुझसे अपने व्यापार के बारे में कुछ भी पूछ सकते हैं।',
-    contentEn: "Hello! I'm your AI business assistant. You can ask me anything about your business.",
-  },
-  {
-    role: 'user',
-    content: 'Agle hafte kitna bikri hoga?',
-  },
-  {
-    role: 'assistant',
-    content: 'आपकी पिछली बिक्री के आधार पर, अगले हफ्ते की अनुमानित बिक्री ₹85,000 - ₹95,000 होगी। शनिवार सबसे ज्यादा बिक्री का दिन होगा (~₹18,000)।',
-    contentEn: "Based on your past sales, next week's estimated sales will be ₹85,000 - ₹95,000. Saturday will be the highest sales day (~₹18,000).",
-    chart: true,
-  },
-];
-
 export default function Assistant() {
   const { t, language } = useLanguage();
+  const { shop } = useShop();
+  const { toast } = useToast();
   const [isListening, setIsListening] = useState(false);
   const [inputText, setInputText] = useState('');
-  const [messages, setMessages] = useState(chatHistory);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: 'assistant',
+      content: language === 'hi' 
+        ? 'नमस्ते! मैं आपका AI बिज़नेस सहायक हूं। आप मुझसे अपने व्यापार के बारे में कुछ भी पूछ सकते हैं।'
+        : "Hello! I'm your AI business assistant. You can ask me anything about your business.",
+    },
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
-    if (!inputText.trim()) return;
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!inputText.trim() || isLoading) return;
     
-    setMessages([...messages, { role: 'user', content: inputText }]);
+    const userMessage = inputText.trim();
     setInputText('');
-    
-    // Simulate AI response
-    setTimeout(() => {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'मैंने आपकी बिक्री का विश्लेषण किया है। आपके सबसे ज्यादा बिकने वाले उत्पाद आटा और चावल हैं।',
-        contentEn: "I've analyzed your sales. Your best-selling products are Atta and Rice.",
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-assistant', {
+        body: {
+          messages: [...messages, { role: 'user', content: userMessage }].map(m => ({
+            role: m.role,
+            content: m.content,
+          })),
+          shopData: shop ? {
+            shopName: shop.name,
+            category: shop.category,
+            city: shop.city,
+          } : null,
+        },
+      });
+
+      if (error) throw error;
+
+      const assistantMessage = data?.message || "I'm sorry, I couldn't process that request.";
+      setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
+    } catch (error: any) {
+      console.error('AI Assistant error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to get AI response',
+        variant: 'destructive',
+      });
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'Sorry, I encountered an error. Please try again.' 
       }]);
-    }, 1000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handlePromptClick = (prompt: string) => {
@@ -116,29 +149,23 @@ export default function Assistant() {
                   <span className="text-xs font-medium text-muted-foreground">AI Assistant</span>
                 </div>
               )}
-              <p className={`${language === 'hi' ? 'hindi-text' : ''}`}>
-                {language === 'hi' ? message.content : (message.contentEn || message.content)}
+              <p className={`whitespace-pre-wrap ${language === 'hi' ? 'hindi-text' : ''}`}>
+                {message.content}
               </p>
-              
-              {/* Sample Chart for response */}
-              {message.chart && (
-                <div className="mt-4 p-3 bg-muted/50 rounded-xl">
-                  <div className="flex items-end justify-between h-24 gap-2">
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                      <div key={day} className="flex flex-col items-center gap-1">
-                        <div 
-                          className="w-6 bg-primary rounded-t"
-                          style={{ height: `${[40, 35, 50, 45, 60, 80, 55][i]}%` }}
-                        />
-                        <span className="text-xs text-muted-foreground">{day}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-card border border-border rounded-2xl rounded-bl-md p-4 shadow-sm">
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                <span className="text-muted-foreground">Thinking...</span>
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Suggested Prompts */}
@@ -150,7 +177,7 @@ export default function Assistant() {
           {suggestedPrompts.map((prompt, i) => (
             <button
               key={i}
-              onClick={() => handlePromptClick(prompt.text)}
+              onClick={() => handlePromptClick(language === 'hi' ? prompt.text : prompt.textEn)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all hover:scale-105 ${prompt.color}`}
             >
               <prompt.icon className="w-4 h-4" />
@@ -183,13 +210,14 @@ export default function Assistant() {
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
               className="h-14 rounded-2xl pr-14 text-lg"
+              disabled={isLoading}
             />
             <Button
               onClick={handleSend}
-              disabled={!inputText.trim()}
+              disabled={!inputText.trim() || isLoading}
               className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-gradient-primary"
             >
-              <Send className="w-5 h-5" />
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </Button>
           </div>
         </div>
