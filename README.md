@@ -1,73 +1,163 @@
-# Welcome to your Lovable project
+# Bharat Vyapaar AI 🇮🇳
 
-## Project info
+> An AI-powered business platform designed to help Indian MSME and retail shop owners make faster, smarter day-to-day decisions.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Overview
 
-## How can I edit this code?
+Bharat Vyapaar AI brings practical business workflows into one modern dashboard experience. The platform is designed around the needs of small retailers, with tools for inventory visibility, sales forecasting, pricing decisions, WhatsApp communication, advertising, website management, and an AI business assistant.
 
-There are several ways of editing your application.
+## Key Features
 
-**Use Lovable**
+- **Business Dashboard** — Centralized overview for day-to-day business activity.
+- **Sales Forecasting** — Use historical business information to support demand and planning decisions.
+- **Inventory Management** — Track products and inventory-related workflows from a single interface.
+- **Smart Pricing** — Support pricing decisions with a business-focused workflow.
+- **WhatsApp Marketing** — Prepare and manage customer communication workflows.
+- **Advertising Tools** — Create and organize promotional activities for products and offers.
+- **Website Management** — Business-oriented tools for managing an online presence.
+- **AI Assistant** — An in-app assistant interface for business-oriented questions and actions.
+- **Multi-language Experience** — Includes application-level language support for Indian users.
+- **Responsive UI** — Built as a modern dashboard application for desktop and smaller screens.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Application Flow
 
-Changes made via Lovable will be committed automatically to this repo.
+```text
+                 ┌──────────────────────┐
+                 │      Login / Auth    │
+                 └──────────┬───────────┘
+                            │
+                            ▼
+                 ┌──────────────────────┐
+                 │   Business Dashboard │
+                 └──────────┬───────────┘
+                            │
+        ┌───────────────────┼────────────────────┐
+        ▼                   ▼                    ▼
+   Forecasting          Inventory          Smart Pricing
+        │                   │                    │
+        └───────────────────┼────────────────────┘
+                            │
+             ┌──────────────┼───────────────┐
+             ▼              ▼               ▼
+         WhatsApp          Ads           Website
+             │              │               │
+             └──────────────┼───────────────┘
+                            ▼
+                     AI Business Assistant
+```
 
-**Use your preferred IDE**
+## Tech Stack
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+| Area | Technology |
+|---|---|
+| Frontend | React + TypeScript |
+| Build Tool | Vite |
+| UI | Tailwind CSS + Radix UI / shadcn-style components |
+| Routing | React Router |
+| Data Fetching | TanStack React Query |
+| Forms & Validation | React Hook Form + Zod |
+| Backend Services | Supabase |
+| Charts | Recharts |
+| Icons | Lucide React |
+| Testing | Vitest / Testing Library |
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+The project dependencies and scripts are configured for a Vite + React + TypeScript application with Supabase integration and a reusable component-based UI system. fileciteturn21file0L2-L5
 
-Follow these steps:
+## Project Structure
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```text
+vyapaar-buddy-ai/
+├── public/                  # Static assets
+├── src/
+│   ├── components/          # Reusable UI and layout components
+│   ├── contexts/            # Application-level state and language context
+│   ├── pages/               # Login, dashboard and feature pages
+│   ├── App.tsx              # Application routes and providers
+│   └── ...
+├── supabase/                # Supabase configuration / backend resources
+├── package.json
+├── vite.config.ts
+└── README.md
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+The application currently routes users through login into dedicated dashboard features including forecasting, inventory, WhatsApp, ads, website, assistant, pricing, and settings. fileciteturn22file0L2-L5
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Getting Started
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### Prerequisites
+
+- Node.js 18+
+- npm
+- A configured Supabase project for features that require backend services
+
+### Installation
+
+```bash
+npm install
+```
+
+### Run locally
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Production build
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run build
+```
 
-**Use GitHub Codespaces**
+### Preview production build
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+npm run preview
+```
 
-## What technologies are used for this project?
+### Lint
 
-This project is built with:
+```bash
+npm run lint
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Tests
 
-## How can I deploy this project?
+```bash
+npm run test
+```
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## Environment Variables
 
-## Can I connect a custom domain to my Lovable project?
+Keep credentials and service configuration in a local `.env` file. Do not commit production secrets, access tokens, or private keys to the repository.
 
-Yes, you can!
+Example:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Product Direction
+
+The goal of Bharat Vyapaar AI is to make useful business intelligence accessible to small and medium-sized Indian retailers without requiring a complex enterprise system. The product combines familiar retail workflows with AI-assisted decision support in a single application.
+
+## Future Improvements
+
+- More advanced sales and demand forecasting models
+- Deeper inventory analytics and low-stock alerts
+- Automated customer segmentation and campaigns
+- Richer AI-driven business recommendations
+- Role-based access for business teams
+- Production-ready observability and analytics
+- Integration with additional commerce and payment platforms
+
+## Security & Privacy
+
+Application credentials should be supplied through environment variables and kept outside version control. Backend access should be configured using Supabase policies appropriate for the deployment environment.
+
+## Author
+
+**Paras Palawat**  
+Full Stack Developer · AI & Open Source Enthusiast
+
+[GitHub](https://github.com/paraspalawat)
